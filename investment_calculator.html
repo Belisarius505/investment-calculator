@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资计算器</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #ddd;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .result-row {
+            background-color: #e6f7ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>投资计算器</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openTab(event, 'fund-info')">基金信息</div>
+            <div class="tab" onclick="openTab(event, 'project-info')">项目基本信息</div>
+            <div class="tab" onclick="openTab(event, 'results')">计算结果</div>
+        </div>
+        
+        <!-- 基金信息表单 -->
+        <div id="fund-info" class="tab-content active">
+            <h2>基金信息</h2>
+            <div class="form-group">
+                <label for="capital-contribution">每次实缴金额 (1)</label>
+                <input type="number" id="capital-contribution" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="fund-dividend">每次基金分红金额 (2)</label>
+                <input type="number" id="fund-dividend" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="management-fee-rate">基金管理费率 (3)</label>
+                <input type="number" id="management-fee-rate" step="0.0001" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="custody-fee-rate">基金托管费率 (4)</label>
+                <input type="number" id="custody-fee-rate" step="0.0001" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="predicted-profit">预测可分配利润 (10)</label>
+                <input type="number" id="predicted-profit" step="0.01">
+            </div>
+            <button onclick="calculateFundInfo()">计算基金信息</button>
+        </div>
+        
+        <!-- 项目基本信息表单 -->
+        <div id="project-info" class="tab-content">
+            <h2>项目基本信息</h2>
+            <div class="form-group">
+                <label for="acquisition-price">收购单价 (16)</label>
+                <input type="number" id="acquisition-price" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="installed-capacity">装机容量 (17)</label>
+                <input type="number" id="installed-capacity" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="equity-amount">股权金额(SPV层面) (18)</label>
+                <input type="number" id="equity-amount" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="shareholder-loan">股东借款金额(SPV层面) (19)</label>
+                <input type="number" id="shareholder-loan" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="external-leverage">外部机构杠杆资金(SPV层面) (20)</label>
+                <input type="number" id="external-leverage" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="installation-cost">安装成本 (21)</label>
+                <input type="number" id="installation-cost" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="original-investment">项目原始投资额 (23)</label>
+                <input type="number" id="original-investment" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="operation-label">运营标签 (27)</label>
+                <input type="text" id="operation-label">
+            </div>
+            <div class="form-group">
+                <label for="investment-status">投资状态 (28-31)</label>
+                <select id="investment-status">
+                    <option value="connected">已并网</option>
+                    <option value="under-construction">投建中</option>
+                    <option value="not-invested">未投</option>
+                    <option value="exited">已退出</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="peak-valley-arbitrage">峰谷套利收入 (32)</label>
+                <input type="number" id="peak-valley-arbitrage" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="auxiliary-transaction">电力辅助交易收入 (33)</label>
+                <input type="number" id="auxiliary-transaction" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="other-income">其他收入 (34)</label>
+                <input type="number" id="other-income" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="peak-valley-share">峰谷套利收入分成比例 (35)</label>
+                <input type="number" id="peak-valley-share" step="0.01" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="auxiliary-share">电力辅助交易收入分成比例 (36)</label>
+                <input type="number" id="auxiliary-share" step="0.01" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="other-income-share">其他收入分成比例 (37)</label>
+                <input type="number" id="other-income-share" step="0.01" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="equipment-cost">设备采购成本账面原值 (38)</label>
+                <input type="number" id="equipment-cost" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="depreciation-years">设备采购成本折旧年限 (39)</label>
+                <input type="number" id="depreciation-years" step="1">
+            </div>
+            <div class="form-group">
+                <label for="residual-value">设备采购成本残值 (40)</label>
+                <input type="number" id="residual-value" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="vat-rate-output">增值税率(销项) (41)</label>
+                <input type="number" id="vat-rate-output" step="0.01" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="vat-rate-input">增值税率(进项) (42)</label>
+                <input type="number" id="vat-rate-input" step="0.01" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="vat-rate-operation">增值税率(运营项) (43)</label>
+                <input type="number" id="vat-rate-operation" step="0.01" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="operation-rate">运营费率 (52)</label>
+                <input type="number" id="operation-rate" step="0.0001" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="insurance-rate">保险费率 (53)</label>
+                <input type="number" id="insurance-rate" step="0.0001" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="stamp-duty-rate">印花税率 (54)</label>
+                <input type="number" id="stamp-duty-rate" step="0.0001" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="external-interest-rate">外部机构杠杆资金年利率 (55)</label>
+                <input type="number" id="external-interest-rate" step="0.0001" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="shareholder-interest-rate">股东借款资金年利率 (56)</label>
+                <input type="number" id="shareholder-interest-rate" step="0.0001" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label for="grid-connection-date">并网日期 (59)</label>
+                <input type="date" id="grid-connection-date">
+            </div>
+            <div class="form-group">
+                <label for="overhaul-unit-price">大修单价 (62)</label>
+                <input type="number" id="overhaul-unit-price" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="overhaul-cycle">大修支出周期 (64)</label>
+                <input type="number" id="overhaul-cycle" step="1">
+            </div>
+            <div class="form-group">
+                <label for="shareholder-loan-start-date">股东借款起息日 (68)</label>
+                <input type="date" id="shareholder-loan-start-date">
+            </div>
+            <div class="form-group">
+                <label for="external-loan-start-date">外部借款起息日 (69)</label>
+                <input type="date" id="external-loan-start-date">
+            </div>
+            <div class="form-group">
+                <label for="price-difference">电价差 (70)</label>
+                <input type="number" id="price-difference" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="electricity-price">电价 (71)</label>
+                <input type="number" id="electricity-price" step="0.01">
+            </div>
+            <button onclick="calculateProjectInfo()">计算项目信息</button>
+        </div>
+        
+        <!-- 计算结果 -->
+        <div id="results" class="tab-content">
+            <h2>计算结果</h2>
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>指标名称</th>
+                        <th>计算值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 结果将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
+            <button onclick="exportResults()">导出结果</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量用于存储计算结果
+        let calculationResults = {};
+        
+        // 切换标签页
+        function openTab(evt, tabName) {
+            let tabcontent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            
+            let tablinks = document.getElementsByClassName("tab");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        // 计算基金信息
+        function calculateFundInfo() {
+            // 获取输入值
+            const capitalContribution = parseFloat(document.getElementById("capital-contribution").value) || 0;
+            const fundDividend = parseFloat(document.getElementById("fund-dividend").value) || 0;
+            const managementFeeRate = parseFloat(document.getElementById("management-fee-rate").value) || 0;
+            const custodyFeeRate = parseFloat(document.getElementById("custody-fee-rate").value) || 0;
+            const predictedProfit = parseFloat(document.getElementById("predicted-profit").value) || 0;
+            
+            // 计算
+            const totalCapitalContribution = capitalContribution; // 简化，实际中可能需要累加历史数据
+            const totalFundDividend = fundDividend; // 简化，实际中可能需要累加历史数据
+            
+            // 存储结果
+            calculationResults = {
+                ...calculationResults,
+                "1": { name: "每次实缴金额", value: capitalContribution },
+                "2": { name: "每次基金分红金额", value: fundDividend },
+                "3": { name: "基金管理费率", value: managementFeeRate },
+                "4": { name: "基金托管费率", value: custodyFeeRate },
+                "5": { name: "累计实缴金额", value: totalCapitalContribution },
+                "7": { name: "累计基金分红金额", value: totalFundDividend },
+                "8": { name: "未获返还的实缴出资额", value: totalCapitalContribution - totalFundDividend },
+                "9": { name: "基金管理费", value: (totalCapitalContribution - totalFundDividend) * managementFeeRate },
+                "10": { name: "预测可分配利润", value: predictedProfit },
+                "11": { name: "基金托管费", value: (totalCapitalContribution - totalFundDividend) * custodyFeeRate }
+            };
+            
+            // 更新结果表格
+            updateResultsTable();
+            
+            // 切换到结果标签页
+            openTab({ currentTarget: document.querySelector('.tab[onclick*="results"]') }, 'results');
+        }
+        
+        // 计算项目基本信息
+        function calculateProjectInfo() {
+            // 获取输入值
+            const acquisitionPrice = parseFloat(document.getElementById("acquisition-price").value) || 0;
+            const installedCapacity = parseFloat(document.getElementById("installed-capacity").value) || 0;
+            const equityAmount = parseFloat(document.getElementById("equity-amount").value) || 0;
+            const shareholderLoan = parseFloat(document.getElementById("shareholder-loan").value) || 0;
+            const externalLeverage = parseFloat(document.getElementById("external-leverage").value) || 0;
+            const installationCost = parseFloat(document.getElementById("installation-cost").value) || 0;
+            const peakValleyArbitrage = parseFloat(document.getElementById("peak-valley-arbitrage").value) || 0;
+            const auxiliaryTransaction = parseFloat(document.getElementById("auxiliary-transaction").value) || 0;
+            const otherIncome = parseFloat(document.getElementById("other-income").value) || 0;
+            const peakValleyShare = parseFloat(document.getElementById("peak-valley-share").value) || 0;
+            const auxiliaryShare = parseFloat(document.getElementById("auxiliary-share").value) || 0;
+            const otherIncomeShare = parseFloat(document.getElementById("other-income-share").value) || 0;
+            const equipmentCost = parseFloat(document.getElementById("equipment-cost").value) || 0;
+            const depreciationYears = parseFloat(document.getElementById("depreciation-years").value) || 0;
+            const vatRateInput = parseFloat(document.getElementById("vat-rate-input").value) || 0;
+            const operationRate = parseFloat(document.getElementById("operation-rate").value) || 0;
+            const insuranceRate = parseFloat(document.getElementById("insurance-rate").value) || 0;
+            const overhauldUnitPrice = parseFloat(document.getElementById("overhaul-unit-price").value) || 0;
+            const overhauldCycle = parseFloat(document.getElementById("overhaul-cycle").value) || 0;
+            
+            // 计算
+            const investedAmount = acquisitionPrice * installedCapacity;
+            const totalInvestment = equityAmount + shareholderLoan + externalLeverage;
+            const leverageRatio = shareholderLoan / equityAmount;
+            const equipmentPurchaseCost = acquisitionPrice - installationCost;
+            const equipmentPurchaseVatDeduction = installedCapacity * equipmentPurchaseCost / (1 + vatRateInput) * vatRateInput;
+            const annualDepreciation = (equipmentCost - equipmentPurchaseVatDeduction) / depreciationYears;
+            const peakValleyShareIncome = peakValleyArbitrage * peakValleyShare;
+            const auxiliaryShareIncome = auxiliaryTransaction * auxiliaryShare;
+            const otherShareIncome = otherIncome * otherIncomeShare;
+            const monthlyOperationCost = installedCapacity * operationRate / 12;
+            const monthlyInsuranceCost = installedCapacity * insuranceRate / 12;
+            const gridConnectionDate = document.getElementById("grid-connection-date").value;
+            const reportDate = new Date().toISOString().split('T')[0]; // 当前日期作为报告日期
+            
+            // 计算电站年龄（简化版）
+            let stationAge = 0;
+            if (gridConnectionDate) {
+                const gridDate = new Date(gridConnectionDate);
+                const today = new Date();
+                stationAge = Math.floor((today - gridDate) / (365.25 * 24 * 60 * 60 * 1000)); // 年龄（年）
+            }
+            
+            const overhauldTotalCost = installedCapacity * overhauldUnitPrice;
+            const annualOverhauldReserve = overhauldTotalCost / overhauldCycle;
+            
+            // 存储结果
+            calculationResults = {
+                ...calculationResults,
+                "16": { name: "收购单价", value: acquisitionPrice },
+                "17": { name: "装机容量", value: installedCapacity },
+                "18": { name: "股权金额(SPV层面)", value: equityAmount },
+                "19": { name: "股东借款金额(SPV层面)", value: shareholderLoan },
+                "20": { name: "外部机构杠杆资金(SPV层面)", value: externalLeverage },
+                "21": { name: "安装成本", value: installationCost },
+                "22": { name: "设备采购成本", value: equipmentPurchaseCost },
+                "24": { name: "已投金额", value: investedAmount },
+                "25": { name: "累计总投资", value: totalInvestment },
+                "26": { name: "杠杆率", value: leverageRatio },
+                "32": { name: "峰谷套利收入", value: peakValleyArbitrage },
+                "33": { name: "电力辅助交易收入", value: auxiliaryTransaction },
+                "34": { name: "其他收入", value: otherIncome },
+                "35": { name: "峰谷套利收入分成比例", value: peakValleyShare },
+                "36": { name: "电力辅助交易收入分成比例", value: auxiliaryShare },
+                "37": { name: "其他收入分成比例", value: otherIncomeShare },
+                "44": { name: "设备采购成本进项增值税抵扣总额", value: equipmentPurchaseVatDeduction },
+                "45": { name: "年折旧金额", value: annualDepreciation },
+                "46": { name: "峰谷套利分成后收入", value: peakValleyShareIncome },
+                "47": { name: "电力辅助交易分成后收入", value: auxiliaryShareIncome },
+                "48": { name: "其他业务分成后收入", value: otherShareIncome },
+                "57": { name: "每月运营费用", value: monthlyOperationCost },
+                "58": { name: "每月保险费用", value: monthlyInsuranceCost },
+                "60": { name: "报告日期", value: reportDate },
+                "61": { name: "电站年龄", value: stationAge },
+                "63": { name: "大修总费用", value: overhauldTotalCost },
+                "65": { name: "每年大修预留金额(含税)", value: annualOverhauldReserve }
+            };
+            
+            // 更新基金信息中的已投金额（如果有基金信息）
+            if (calculationResults["5"]) {
+                calculationResults["6"] = { 
+                    name: "闲置资金", 
+                    value: calculationResults["5"].value - investedAmount 
+                };
+            }
+            
+            // 如果有基金信息和项目收入信息，计算应收可分配利润和年度可分配利润
+            if (calculationResults["46"] && calculationResults["47"] && calculationResults["48"] && calculationResults["10"]) {
+                calculationResults["14"] = { 
+                    name: "应收可分配利润", 
+                    value: peakValleyShareIncome + auxiliaryShareIncome + otherShareIncome 
+                };
+                
+                calculationResults["15"] = { 
+                    name: "年度可分配利润", 
+                    value: calculationResults["14"].value + calculationResults["10"].value 
+                };
+            }
+            
+            // 更新结果表格
+            updateResultsTable();
+            
+            // 切换到结果标签页
+            openTab({ currentTarget: document.querySelector('.tab[onclick*="results"]') }, 'results');
+        }
+        
+        // 更新结果表格
+        function updateResultsTable() {
+            const tbody = document.querySelector("#results-table tbody");
+            tbody.innerHTML = "";
+            
+            // 按序号排序
+            const sortedKeys = Object.keys(calculationResults).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            for (const key of sortedKeys) {
+                const result = calculationResults[key];
+                const row = document.createElement("tr");
+                row.classList.add("result-row");
+                
+                row.innerHTML = `
+                    <td>${key}</td>
+                    <td>${result.name}</td>
+                    <td>${result.value.toFixed(2)}</td>
+                `;
+                
+                tbody.appendChild(row);
+            }
+        }
+        
+        // 导出结果
+        function exportResults() {
+            // 创建CSV内容
+            let csvContent = "序号,指标名称,计算值\n";
+            
+            // 按序号排序
+            const sortedKeys = Object.keys(calculationResults).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            for (const key of sortedKeys) {
+                const result = calculationResults[key];
+                csvContent += `${key},"${result.name}",${result.value.toFixed(2)}\n`;
+            }
+            
+            // 创建Blob对象
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // 创建下载链接
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "投资计算结果.csv");
+            link.style.visibility = 'hidden';
+            
+            // 添加到文档并触发点击
+            document.body.appendChild(link);
+            link.click();
+            
+            // 清理
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html> 
